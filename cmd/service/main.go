@@ -35,7 +35,7 @@ func main() {
 	repo := outmem.NewGreetingRepository()
 	application := app.NewApplication(repo)
 
-	server := http.NewServer(cfg, log, application.Greeting)
+	server := http.NewServer(cfg, log, application)
 
 	serverErrors := make(chan error, 1)
 	go func() {
