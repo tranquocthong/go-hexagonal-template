@@ -1,45 +1,38 @@
 package app
 
 import (
-	"time"
-
-	"example.com/yourorg/yourservice/internal/domain"
-	portin "example.com/yourorg/yourservice/internal/domain/port/in"
 	portout "example.com/yourorg/yourservice/internal/domain/port/out"
+
+	"example.com/yourorg/yourservice/internal/app/command"
+	"example.com/yourorg/yourservice/internal/app/query"
 )
 
+// Application holds all application layer handlers (CQRS)
 type Application struct {
-	Greeting GreetingUseCase
+	Queries  Queries
+	Commands Commands
 }
 
+// Queries bundles all query handlers
+type Queries struct {
+	GetGreetingHandler   query.GetGreetingHandler
+	ListGreetingsHandler query.ListGreetingsHandler
+}
+
+// Commands bundles all command handlers
+type Commands struct {
+	CreateGreetingHandler command.CreateGreetingHandler
+}
+
+// NewApplication wires command/query handlers with outbound ports
 func NewApplication(greetingRepo portout.GreetingRepository) *Application {
 	return &Application{
-		Greeting: GreetingUseCase{repo: greetingRepo},
+		Queries: Queries{
+			GetGreetingHandler:   query.NewGetGreetingHandler(greetingRepo),
+			ListGreetingsHandler: query.NewListGreetingsHandler(greetingRepo),
+		},
+		Commands: Commands{
+			CreateGreetingHandler: command.NewCreateGreetingHandler(greetingRepo),
+		},
 	}
-}
-
-type GreetingUseCase struct {
-	repo portout.GreetingRepository
-}
-
-// Compile-time assertion that GreetingUseCase implements inbound GreetingUseCases port.
-var _ portin.GreetingUseCases = (*GreetingUseCase)(nil)
-
-func (u GreetingUseCase) CreateGreeting(id, message string) (domain.Greeting, error) {
-	g := domain.Greeting{ID: id, Message: message, CreatedAt: time.Now()}
-	if g.ID == "" || g.Message == "" {
-		return domain.Greeting{}, domain.DomainError{Code: domain.ErrInvalid, Message: "id and message are required"}
-	}
-	if err := u.repo.Create(g); err != nil {
-		return domain.Greeting{}, err
-	}
-	return g, nil
-}
-
-func (u GreetingUseCase) GetGreeting(id string) (domain.Greeting, error) {
-	return u.repo.GetByID(id)
-}
-
-func (u GreetingUseCase) ListGreetings() ([]domain.Greeting, error) {
-	return u.repo.List()
 }

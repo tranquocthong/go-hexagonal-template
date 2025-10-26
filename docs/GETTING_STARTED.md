@@ -43,7 +43,10 @@ internal/
   domain/port/         # hexagonal ports
     in/                # inbound use cases
     out/               # outbound repositories/external
-  app/                 # use-cases implement inbound ports, depend on outbound ports
+  app/                 # CQRS: commands and queries, wired by Application
+    command/           # write handlers
+    query/             # read handlers
+    service/           # shared services and converts
   adapters/
     inbound/http       # HTTP handlers, middleware, server
     outbound/memory    # example repo implementation

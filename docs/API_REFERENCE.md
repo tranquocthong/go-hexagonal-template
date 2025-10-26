@@ -47,4 +47,7 @@ Response 201
 {"id":"hi","message":"Hi there","created_at":"..."}
 ```
 
+Notes:
+- Reads are served via application Queries; writes via Commands.
+
 

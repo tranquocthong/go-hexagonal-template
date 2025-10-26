@@ -8,21 +8,21 @@ import (
 	"net/http"
 	"time"
 
+	"example.com/yourorg/yourservice/internal/app"
 	"example.com/yourorg/yourservice/internal/domain"
-	portin "example.com/yourorg/yourservice/internal/domain/port/in"
 	"example.com/yourorg/yourservice/pkg/config"
 )
 
 type Server struct {
-	cfg      config.Config
-	log      *slog.Logger
-	greeting portin.GreetingUseCases
-	http     *http.Server
+	cfg  config.Config
+	log  *slog.Logger
+	app  *app.Application
+	http *http.Server
 }
 
-func NewServer(cfg config.Config, log *slog.Logger, greeting portin.GreetingUseCases) *Server {
+func NewServer(cfg config.Config, log *slog.Logger, application *app.Application) *Server {
 	mux := http.NewServeMux()
-	s := &Server{cfg: cfg, log: log, greeting: greeting}
+	s := &Server{cfg: cfg, log: log, app: application}
 
 	mux.HandleFunc("GET /healthz", s.handleHealth)
 	mux.HandleFunc("GET /api/v1/greetings", s.handleListGreetings)
@@ -50,7 +50,7 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleListGreetings(w http.ResponseWriter, r *http.Request) {
-	items, err := s.greeting.ListGreetings()
+	items, err := s.app.Queries.ListGreetingsHandler.Handle()
 	if err != nil {
 		s.respondError(w, err)
 		return
@@ -60,7 +60,7 @@ func (s *Server) handleListGreetings(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleGetGreeting(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	g, err := s.greeting.GetGreeting(id)
+	g, err := s.app.Queries.GetGreetingHandler.Handle(id)
 	if err != nil {
 		s.respondError(w, err)
 		return
@@ -79,7 +79,7 @@ func (s *Server) handleCreateGreeting(w http.ResponseWriter, r *http.Request) {
 		s.respondJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
 		return
 	}
-	g, err := s.greeting.CreateGreeting(req.ID, req.Message)
+	g, err := s.app.Commands.CreateGreetingHandler.Handle(req.ID, req.Message)
 	if err != nil {
 		s.respondError(w, err)
 		return
