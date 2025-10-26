@@ -1,0 +1,13 @@
+version: '3.9'
+services:
+  service:
+    build: .
+    container_name: yourservice
+    environment:
+      - APP_NAME=yourservice
+      - APP_ENV=development
+      - LOG_LEVEL=debug
+      - HTTP_ADDRESS=:8080
+    ports:
+      - "8080:8080"
+

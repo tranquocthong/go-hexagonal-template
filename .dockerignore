@@ -1,0 +1,28 @@
+# VCS
+.git
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Build artifacts
+bin/
+build/
+dist/
+
+# Go caches and test artifacts
+.cache/
+*.test
+coverage.out
+
+# Env files
+.env
+.env.*
+
+# Other ecosystems
+node_modules/
+
+# Docs (optional)
+docs/
+README.md
