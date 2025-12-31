@@ -1,5 +1,5 @@
 module example.com/yourorg/yourservice
 
-go 1.22.0
+go 1.25.5
 
 require github.com/golang-jwt/jwt/v5 v5.2.1

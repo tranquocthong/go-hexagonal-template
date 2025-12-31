@@ -59,4 +59,112 @@ type Application struct {
 }
 ```
 
+### Project Structure
+
+```
+golang-template-prj/
+├── cmd/
+│   └── service/
+│       └── main.go              # Composition root - wires all dependencies
+│
+├── internal/                    # Private application code
+│   ├── domain/                  # Domain layer (entities + domain errors)
+│   │   ├── error.go             # Domain-specific errors
+│   │   ├── greeting.go          # Greeting entity/aggregate
+│   │   ├── user.go              # User entity
+│   │   └── port/                # Hexagonal ports
+│   │       ├── in/              # Inbound ports (use cases)
+│   │       │   └── greeting_usecases.go
+│   │       └── out/             # Outbound ports (repositories/external)
+│   │           └── greeting_repository.go
+│   │
+│   ├── app/                     # Application layer (CQRS)
+│   │   ├── app.go               # Application aggregator
+│   │   ├── command/             # Write-side handlers
+│   │   │   └── create_greeting.go
+│   │   ├── query/               # Read-side handlers
+│   │   │   ├── get_greeting.go
+│   │   │   └── list_greetings.go
+│   │   └── service/             # Application services
+│   │       ├── entity_service.go
+│   │       └── converts/
+│   │           └── doc.go       # Domain-DTO conversions
+│   │
+│   └── adapters/                # Adapters layer
+│       ├── inbound/             # Inbound adapters
+│       │   └── http/            # HTTP adapter
+│       │       ├── server.go    # HTTP server setup
+│       │       ├── auth.go      # Authentication handlers
+│       │       └── server_extras.go
+│       └── outbound/            # Outbound adapters
+│           └── memory/          # In-memory repository implementation
+│               └── greeting_repo.go
+│
+├── pkg/                         # Public/shared packages
+│   ├── config/
+│   │   └── config.go            # Environment configuration
+│   ├── logger/
+│   │   └── logger.go            # Structured logging (slog)
+│   └── auth/
+│       └── jwt/
+│           └── jwt.go           # JWT token helpers
+│
+├── docs/                        # Documentation
+│   ├── GETTING_STARTED.md       # Quick start guide
+│   ├── ARCHITECTURE.md          # Architecture documentation
+│   └── API_REFERENCE.md         # API endpoints reference
+│
+├── bin/                         # Compiled binaries (gitignored)
+│
+├── go.mod                       # Go module definition
+├── go.sum                       # Go module checksums
+├── Makefile                     # Build and development tasks
+├── Dockerfile                   # Container image definition
+├── docker-compose.yml           # Docker composition
+├── env.example                  # Example environment variables
+├── .gitignore                   # Git ignore patterns
+├── .dockerignore                # Docker ignore patterns
+└── README.md                    # Project overview
+```
+
+### Directory Responsibilities
+
+#### `/cmd/service`
+- Composition root where all dependencies are wired together
+- Creates instances of adapters and injects them into the application layer
+- Starts the HTTP server
+
+#### `/internal/domain`
+- **Pure domain logic** - no external dependencies
+- Entities, value objects, and domain errors
+- Business rules and invariants
+- Domain ports define interfaces for use cases (in/) and repositories (out/)
+
+#### `/internal/app`
+- Implements inbound ports (use cases)
+- Depends on outbound ports for data access
+- Organized using CQRS pattern:
+  - **Commands**: Write operations (create, update, delete)
+  - **Queries**: Read operations (get, list)
+- Application services for cross-cutting domain logic
+
+#### `/internal/adapters`
+- **Inbound adapters**: Entry points (HTTP, CLI, gRPC, etc.)
+  - Call application use cases through inbound ports
+  - Handle protocol-specific concerns (HTTP routing, middleware, error mapping)
+- **Outbound adapters**: Infrastructure implementations
+  - Implement outbound ports (repositories, external services)
+  - Handle persistence, caching, external APIs
+
+#### `/pkg`
+- Reusable packages that could be extracted to separate libraries
+- No business logic - only technical utilities
+- Examples: config loading, logging, authentication helpers
+
+### Dependency Flow
+```
+Inbound Adapter → Inbound Port → Application (Use Case) → Outbound Port → Outbound Adapter
+    (HTTP)           (interface)       (command/query)      (interface)      (repository)
+```
+
 

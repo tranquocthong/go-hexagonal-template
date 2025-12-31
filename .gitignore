@@ -4,6 +4,7 @@
 # IDE/editor
 .idea/
 .vscode/
+.claude/
 
 # Binaries and build artifacts
 bin/

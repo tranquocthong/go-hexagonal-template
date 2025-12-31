@@ -35,28 +35,6 @@ make docker
 make docker-run
 ```
 
-### Project Structure
-```
-cmd/service            # composition root
-internal/
-  domain/              # entities + domain errors
-  domain/port/         # hexagonal ports
-    in/                # inbound use cases
-    out/               # outbound repositories/external
-  app/                 # CQRS: commands and queries, wired by Application
-    command/           # write handlers
-    query/             # read handlers
-    service/           # shared services and converts
-  adapters/
-    inbound/http       # HTTP handlers, middleware, server
-    outbound/memory    # example repo implementation
-pkg/
-  config/              # env config
-  logger/              # slog JSON logger
-  auth/jwt             # JWT helpers
-docs/                  # docs
-```
-
 ### Next Steps
 - Replace in-memory repositories with real adapters (e.g., PostgreSQL, MongoDB)
 - Add migrations, tracing, metrics, CI
