@@ -28,10 +28,13 @@ import (
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @servers   http://localhost:8080
+// @host      localhost:8080
+// @BasePath  /
 
-// @securityDefinitions.bearer BearerAuth
-// @bearerFormat JWT
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Bearer token (prefix with "Bearer ")
 func main() {
 	cfg := config.LoadFromEnv()
 	log := logger.NewLogger(cfg.LogLevel, cfg.Env)

@@ -8,7 +8,7 @@ LINT_BIN=$(shell which golangci-lint)
 .PHONY: build run tidy test lint fmt docker docker-run swagger
 
 swagger:
-	$(SWAG_BIN) init --v3.1 -g cmd/service/main.go -o ./docs/swagger
+	$(SWAG_BIN) init -g cmd/service/main.go -o ./docs/swagger
 
 build:
 	@mkdir -p bin

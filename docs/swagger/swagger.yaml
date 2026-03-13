@@ -1,41 +1,39 @@
-components:
-  schemas:
-    domain.Greeting:
-      properties:
-        createdAt:
-          type: string
-        id:
-          type: string
-        message:
-          type: string
-      type: object
-    http.createGreetingRequest:
-      properties:
-        id:
-          example: greeting-123
-          type: string
-        message:
-          example: Hello, World!
-          type: string
-      type: object
-    http.loginRequest:
-      properties:
-        email:
-          example: user@example.com
-          type: string
-        password:
-          example: password123
-          type: string
-      type: object
-    http.loginResponse:
-      properties:
-        access_token:
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI...
-          type: string
-      type: object
-externalDocs:
-  description: ""
-  url: ""
+basePath: /
+definitions:
+  domain.Greeting:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+    type: object
+  http.createGreetingRequest:
+    properties:
+      id:
+        example: greeting-123
+        type: string
+      message:
+        example: Hello, World!
+        type: string
+    type: object
+  http.loginRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+    type: object
+  http.loginResponse:
+    properties:
+      access_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI...
+        type: string
+    type: object
+host: localhost:8080
 info:
   contact:
     email: support@swagger.io
@@ -49,67 +47,58 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Golang Template API
   version: "1.0"
-openapi: 3.1.0
 paths:
   /api/v1/greetings:
     get:
       description: List all greetings
+      produces:
+      - application/json
       responses:
         "200":
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/domain.Greeting'
-                type: array
           description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Greeting'
+            type: array
       summary: List Greetings
       tags:
       - greetings
     post:
+      consumes:
+      - application/json
       description: Create a new greeting
-      requestBody:
-        content:
-          application/json:
-            schema:
-              oneOf:
-              - type: object
-              - $ref: '#/components/schemas/http.createGreetingRequest'
-                description: Greeting Data
-                summary: request
-        description: Greeting Data
+      parameters:
+      - description: Greeting Data
+        in: body
+        name: request
         required: true
+        schema:
+          $ref: '#/definitions/http.createGreetingRequest'
+      produces:
+      - application/json
       responses:
         "201":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/domain.Greeting'
           description: Created
+          schema:
+            $ref: '#/definitions/domain.Greeting'
         "400":
-          content:
-            application/json:
-              schema:
-                additionalProperties:
-                  type: string
-                type: object
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "401":
-          content:
-            application/json:
-              schema:
-                additionalProperties:
-                  type: string
-                type: object
           description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "409":
-          content:
-            application/json:
-              schema:
-                additionalProperties:
-                  type: string
-                type: object
           description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
       summary: Create Greeting
@@ -123,86 +112,75 @@ paths:
         in: path
         name: id
         required: true
-        schema:
-          type: string
+        type: string
+      produces:
+      - application/json
       responses:
         "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/domain.Greeting'
           description: OK
+          schema:
+            $ref: '#/definitions/domain.Greeting'
         "404":
-          content:
-            application/json:
-              schema:
-                additionalProperties:
-                  type: string
-                type: object
           description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Get Greeting
       tags:
       - greetings
   /api/v1/login:
     post:
+      consumes:
+      - application/json
       description: Login to get an access token
-      requestBody:
-        content:
-          application/json:
-            schema:
-              oneOf:
-              - type: object
-              - $ref: '#/components/schemas/http.loginRequest'
-                description: Login Credentials
-                summary: request
-        description: Login Credentials
+      parameters:
+      - description: Login Credentials
+        in: body
+        name: request
         required: true
+        schema:
+          $ref: '#/definitions/http.loginRequest'
+      produces:
+      - application/json
       responses:
         "200":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/http.loginResponse'
           description: OK
+          schema:
+            $ref: '#/definitions/http.loginResponse'
         "400":
-          content:
-            application/json:
-              schema:
-                additionalProperties:
-                  type: string
-                type: object
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
-          content:
-            application/json:
-              schema:
-                additionalProperties:
-                  type: string
-                type: object
           description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Login
       tags:
       - auth
   /api/v1/me:
     get:
       description: Get current user profile
+      produces:
+      - application/json
       responses:
         "200":
-          content:
-            application/json:
-              schema:
-                additionalProperties:
-                  type: string
-                type: object
           description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "401":
-          content:
-            application/json:
-              schema:
-                additionalProperties:
-                  type: string
-                type: object
           description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
       summary: Get Profile
@@ -211,14 +189,21 @@ paths:
   /healthz:
     get:
       description: Check if the server is healthy
+      produces:
+      - application/json
       responses:
         "200":
-          content:
-            application/json:
-              schema:
-                additionalProperties: {}
-                type: object
           description: OK
+          schema:
+            additionalProperties: true
+            type: object
       summary: Health Check
       tags:
       - health
+securityDefinitions:
+  BearerAuth:
+    description: Bearer token (prefix with "Bearer ")
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

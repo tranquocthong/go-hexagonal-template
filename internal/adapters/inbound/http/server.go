@@ -11,7 +11,7 @@ import (
 	"example.com/yourorg/yourservice/internal/app"
 	"example.com/yourorg/yourservice/internal/domain"
 	"example.com/yourorg/yourservice/pkg/config"
-	httpSwagger "github.com/swaggo/http-swagger/v2"
+	httpSwagger "github.com/swaggo/http-swagger"
 	_ "example.com/yourorg/yourservice/docs/swagger" // Import docs
 )
 
