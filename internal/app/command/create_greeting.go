@@ -17,10 +17,10 @@ func NewCreateGreetingHandler(repo portout.GreetingRepository) CreateGreetingHan
 }
 
 func (h CreateGreetingHandler) Handle(id, message string) (domain.Greeting, error) {
-	g := domain.Greeting{ID: id, Message: message, CreatedAt: time.Now()}
-	if g.ID == "" || g.Message == "" {
+	if id == "" || message == "" {
 		return domain.Greeting{}, domain.DomainError{Code: domain.ErrInvalid, Message: "id and message are required"}
 	}
+	g := domain.Greeting{ID: id, Message: message, CreatedAt: time.Now()}
 	if err := h.repo.Create(g); err != nil {
 		return domain.Greeting{}, err
 	}

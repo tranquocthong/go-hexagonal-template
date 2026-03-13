@@ -20,6 +20,12 @@ type Config struct {
 	JWTTTL          time.Duration
 }
 
+const defaultJWTSecret = "dev_secret_change_me"
+
+// IsDefaultJWTSecret returns true when JWT_SECRET was not overridden — use to
+// emit a startup warning in non-production environments.
+func (c Config) IsDefaultJWTSecret() bool { return c.JWTSecret == defaultJWTSecret }
+
 func LoadFromEnv() Config {
 	return Config{
 		AppName:         getEnv("APP_NAME", "yourservice"),
@@ -31,7 +37,7 @@ func LoadFromEnv() Config {
 		IdleTimeout:     getEnvDuration("HTTP_IDLE_TIMEOUT", 60*time.Second),
 		ShutdownTimeout: getEnvDuration("SHUTDOWN_TIMEOUT", 20*time.Second),
 		LogLevel:        getEnv("LOG_LEVEL", "info"),
-		JWTSecret:       getEnv("JWT_SECRET", "dev_secret_change_me"),
+		JWTSecret:       getEnv("JWT_SECRET", defaultJWTSecret),
 		JWTTTL:          getEnvDuration("JWT_TTL", time.Hour),
 	}
 }

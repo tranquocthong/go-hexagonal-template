@@ -9,13 +9,15 @@ import (
 )
 
 type greetingRepo struct {
-	mu     sync.RWMutex
-	byID   map[string]domain.Greeting
-	seeded bool
+	mu   sync.RWMutex
+	byID map[string]domain.Greeting
 }
 
 func NewGreetingRepository() portout.GreetingRepository {
-	return &greetingRepo{byID: make(map[string]domain.Greeting)}
+	r := &greetingRepo{byID: make(map[string]domain.Greeting)}
+	// Seed demo data at construction time
+	r.byID["hello"] = domain.Greeting{ID: "hello", Message: "Hello, World!", CreatedAt: time.Now()}
+	return r
 }
 
 func (r *greetingRepo) Create(g domain.Greeting) error {
@@ -39,13 +41,8 @@ func (r *greetingRepo) GetByID(id string) (domain.Greeting, error) {
 }
 
 func (r *greetingRepo) List() ([]domain.Greeting, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if !r.seeded {
-		// seed one record for demo
-		r.byID["hello"] = domain.Greeting{ID: "hello", Message: "Hello, World!", CreatedAt: time.Now()}
-		r.seeded = true
-	}
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	out := make([]domain.Greeting, 0, len(r.byID))
 	for _, g := range r.byID {
 		out = append(out, g)

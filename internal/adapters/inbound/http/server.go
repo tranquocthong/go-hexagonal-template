@@ -4,27 +4,29 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"runtime/debug"
 	"time"
 
-	"example.com/yourorg/yourservice/internal/app"
+	_ "example.com/yourorg/yourservice/docs/swagger" // Import docs
 	"example.com/yourorg/yourservice/internal/domain"
+	portin "example.com/yourorg/yourservice/internal/domain/port/in"
 	"example.com/yourorg/yourservice/pkg/config"
 	httpSwagger "github.com/swaggo/http-swagger"
-	_ "example.com/yourorg/yourservice/docs/swagger" // Import docs
 )
 
 type Server struct {
 	cfg  config.Config
 	log  *slog.Logger
-	app  *app.Application
+	app  portin.GreetingUseCases
 	http *http.Server
 }
 
-func NewServer(cfg config.Config, log *slog.Logger, application *app.Application) *Server {
+func NewServer(cfg config.Config, log *slog.Logger, usecases portin.GreetingUseCases) *Server {
 	mux := http.NewServeMux()
-	s := &Server{cfg: cfg, log: log, app: application}
+	s := &Server{cfg: cfg, log: log, app: usecases}
 
 	mux.HandleFunc("GET /healthz", s.handleHealth)
 	mux.HandleFunc("GET /api/v1/greetings", s.handleListGreetings)
@@ -57,7 +59,7 @@ func (s *Server) Stop(ctx context.Context) error { return s.http.Shutdown(ctx) }
 // @Produce      json
 // @Success      200 {object} map[string]interface{}
 // @Router       /healthz [get]
-func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
 	s.respondJSON(w, http.StatusOK, map[string]any{"status": "ok", "time": time.Now()})
 }
 
@@ -68,8 +70,8 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Success      200 {array} domain.Greeting
 // @Router       /api/v1/greetings [get]
-func (s *Server) handleListGreetings(w http.ResponseWriter, r *http.Request) {
-	items, err := s.app.Queries.ListGreetingsHandler.Handle()
+func (s *Server) handleListGreetings(w http.ResponseWriter, _ *http.Request) {
+	items, err := s.app.ListGreetings()
 	if err != nil {
 		s.respondError(w, err)
 		return
@@ -88,7 +90,7 @@ func (s *Server) handleListGreetings(w http.ResponseWriter, r *http.Request) {
 // @Router       /api/v1/greetings/{id} [get]
 func (s *Server) handleGetGreeting(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	g, err := s.app.Queries.GetGreetingHandler.Handle(id)
+	g, err := s.app.GetGreeting(id)
 	if err != nil {
 		s.respondError(w, err)
 		return
@@ -120,7 +122,7 @@ func (s *Server) handleCreateGreeting(w http.ResponseWriter, r *http.Request) {
 		s.respondJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
 		return
 	}
-	g, err := s.app.Commands.CreateGreetingHandler.Handle(req.ID, req.Message)
+	g, err := s.app.CreateGreeting(req.ID, req.Message)
 	if err != nil {
 		s.respondError(w, err)
 		return
@@ -160,7 +162,9 @@ func (s *Server) respondError(w http.ResponseWriter, err error) {
 func (s *Server) respondJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		s.log.Error("failed to encode response", slog.String("error", err.Error()))
+	}
 }
 
 func (s *Server) withLogging(next http.Handler) http.Handler {
@@ -181,7 +185,10 @@ func (s *Server) withRecover(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rec := recover(); rec != nil {
-				s.log.Error("panic recovered")
+				s.log.Error("panic recovered",
+					slog.String("panic", fmt.Sprintf("%v", rec)),
+					slog.String("stack", string(debug.Stack())),
+				)
 				s.respondJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal error"})
 			}
 		}()

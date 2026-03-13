@@ -8,6 +8,8 @@ services:
       - APP_ENV=development
       - LOG_LEVEL=debug
       - HTTP_ADDRESS=:8080
+      # Generate a strong secret: openssl rand -hex 32
+      - JWT_SECRET=${JWT_SECRET:-dev_secret_change_me}
     ports:
       - "8080:8080"
 

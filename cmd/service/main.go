@@ -40,6 +40,10 @@ func main() {
 	log := logger.NewLogger(cfg.LogLevel, cfg.Env)
 	slog.SetDefault(log)
 
+	if cfg.IsDefaultJWTSecret() {
+		log.Warn("JWT_SECRET is using the insecure default — set JWT_SECRET in production")
+	}
+
 	log.Info("starting service",
 		slog.String("app", cfg.AppName),
 		slog.String("env", cfg.Env),
@@ -54,7 +58,7 @@ func main() {
 	repo := outmem.NewGreetingRepository()
 	application := app.NewApplication(repo)
 
-	server := http.NewServer(cfg, log, application)
+	server := http.NewServer(cfg, log, application) // application implements portin.GreetingUseCases
 
 	serverErrors := make(chan error, 1)
 	go func() {
