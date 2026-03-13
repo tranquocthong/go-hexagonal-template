@@ -1,0 +1,59 @@
+default:
+  image: golang:1.25-alpine
+
+variables:
+  CGO_ENABLED: "0"
+  GOFLAGS: "-mod=readonly"
+  GOLANGCI_LINT_VERSION: "v2.11.3"
+
+stages:
+  - lint
+  - test
+  - build
+
+# Cache Go module downloads across jobs
+.go-cache: &go-cache
+  cache:
+    key:
+      files:
+        - go.sum
+    paths:
+      - .go-cache/
+  before_script:
+    - mkdir -p .go-cache
+    - export GOPATH="$CI_PROJECT_DIR/.go-cache"
+
+lint:
+  stage: lint
+  <<: *go-cache
+  script:
+    - wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
+      | sh -s -- -b /usr/local/bin ${GOLANGCI_LINT_VERSION}
+    - golangci-lint run ./...
+
+test:
+  stage: test
+  <<: *go-cache
+  script:
+    - go test -race -coverprofile=coverage.out ./...
+    - go tool cover -func=coverage.out
+  coverage: '/total:\s+\(statements\)\s+(\d+\.\d+)%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    paths:
+      - coverage.out
+    expire_in: 1 week
+
+build:
+  stage: build
+  <<: *go-cache
+  needs: [lint, test]
+  script:
+    - go build -o bin/service ./cmd/service
+  artifacts:
+    paths:
+      - bin/service
+    expire_in: 1 day

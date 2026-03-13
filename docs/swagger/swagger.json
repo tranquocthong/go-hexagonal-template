@@ -1,0 +1,360 @@
+{
+    "components": {
+        "schemas": {
+            "domain.Greeting": {
+                "properties": {
+                    "createdAt": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "http.createGreetingRequest": {
+                "properties": {
+                    "id": {
+                        "example": "greeting-123",
+                        "type": "string"
+                    },
+                    "message": {
+                        "example": "Hello, World!",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "http.loginRequest": {
+                "properties": {
+                    "email": {
+                        "example": "user@example.com",
+                        "type": "string"
+                    },
+                    "password": {
+                        "example": "password123",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "http.loginResponse": {
+                "properties": {
+                    "access_token": {
+                        "example": "eyJhbGciOiJIUzI1NiIsInR5cCI...",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "info": {
+        "contact": {
+            "email": "support@swagger.io",
+            "name": "API Support",
+            "url": "http://www.swagger.io/support"
+        },
+        "description": "This is an API Server for the Golang Template application following DDD architecture.",
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "termsOfService": "http://swagger.io/terms/",
+        "title": "Golang Template API",
+        "version": "1.0"
+    },
+    "externalDocs": {
+        "description": "",
+        "url": ""
+    },
+    "paths": {
+        "/api/v1/greetings": {
+            "get": {
+                "description": "List all greetings",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/domain.Greeting"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    }
+                },
+                "summary": "List Greetings",
+                "tags": [
+                    "greetings"
+                ]
+            },
+            "post": {
+                "description": "Create a new greeting",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/http.createGreetingRequest",
+                                        "summary": "request",
+                                        "description": "Greeting Data"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "description": "Greeting Data",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/domain.Greeting"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Create Greeting",
+                "tags": [
+                    "greetings"
+                ]
+            }
+        },
+        "/api/v1/greetings/{id}": {
+            "get": {
+                "description": "Get a greeting by ID",
+                "parameters": [
+                    {
+                        "description": "Greeting ID",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/domain.Greeting"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    }
+                },
+                "summary": "Get Greeting",
+                "tags": [
+                    "greetings"
+                ]
+            }
+        },
+        "/api/v1/login": {
+            "post": {
+                "description": "Login to get an access token",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/http.loginRequest",
+                                        "summary": "request",
+                                        "description": "Login Credentials"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "description": "Login Credentials",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/http.loginResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Login",
+                "tags": [
+                    "auth"
+                ]
+            }
+        },
+        "/api/v1/me": {
+            "get": {
+                "description": "Get current user profile",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Get Profile",
+                "tags": [
+                    "auth"
+                ]
+            }
+        },
+        "/healthz": {
+            "get": {
+                "description": "Check if the server is healthy",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    }
+                },
+                "summary": "Health Check",
+                "tags": [
+                    "health"
+                ]
+            }
+        }
+    },
+    "openapi": "3.1.0"
+}

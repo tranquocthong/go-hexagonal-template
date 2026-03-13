@@ -1,14 +1,24 @@
 SVC=yourservice
 BIN=bin/$(SVC)
 
-.PHONY: build run tidy test lint fmt docker docker-run
+SWAG_BIN=$(shell go env GOPATH)/bin/swag
+
+LINT_BIN=$(shell which golangci-lint)
+
+.PHONY: build run tidy test lint fmt docker docker-run swagger
+
+swagger:
+	$(SWAG_BIN) init --v3.1 -g cmd/service/main.go -o ./docs/swagger
 
 build:
 	@mkdir -p bin
 	GO111MODULE=on CGO_ENABLED=0 go build -o $(BIN) ./cmd/service
 
-run: build
+run: swagger build
 	APP_NAME=$(SVC) $(BIN)
+
+lint:
+	$(LINT_BIN) run ./...
 
 tidy:
 	go mod tidy

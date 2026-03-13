@@ -16,6 +16,22 @@ import (
 	"example.com/yourorg/yourservice/pkg/logger"
 )
 
+// @title           Golang Template API
+// @version         1.0
+// @description     This is an API Server for the Golang Template application following DDD architecture.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @servers   http://localhost:8080
+
+// @securityDefinitions.bearer BearerAuth
+// @bearerFormat JWT
 func main() {
 	cfg := config.LoadFromEnv()
 	log := logger.NewLogger(cfg.LogLevel, cfg.Env)

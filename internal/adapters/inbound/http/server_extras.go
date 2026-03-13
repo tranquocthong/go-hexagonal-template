@@ -9,14 +9,25 @@ import (
 )
 
 type loginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" example:"user@example.com"`
+	Password string `json:"password" example:"password123"`
 }
 
 type loginResponse struct {
-	AccessToken string `json:"access_token"`
+	AccessToken string `json:"access_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI..."`
 }
 
+// handleLogin godoc
+// @Summary      Login
+// @Description  Login to get an access token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body loginRequest true "Login Credentials"
+// @Success      200 {object} loginResponse
+// @Failure      400 {object} map[string]string
+// @Failure      500 {object} map[string]string
+// @Router       /api/v1/login [post]
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	// This is an example only; in real apps validate credentials properly.
 	var req loginRequest
@@ -32,6 +43,15 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, http.StatusOK, loginResponse{AccessToken: tok})
 }
 
+// handleMe godoc
+// @Summary      Get Profile
+// @Description  Get current user profile
+// @Tags         auth
+// @Produce      json
+// @Success      200 {object} map[string]string
+// @Failure      401 {object} map[string]string
+// @Security     BearerAuth
+// @Router       /api/v1/me [get]
 func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
 	if sub, ok := subjectFromContext(r.Context()); ok {
 		s.respondJSON(w, http.StatusOK, map[string]string{"subject": sub})

@@ -11,6 +11,8 @@ import (
 	"example.com/yourorg/yourservice/internal/app"
 	"example.com/yourorg/yourservice/internal/domain"
 	"example.com/yourorg/yourservice/pkg/config"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
+	_ "example.com/yourorg/yourservice/docs/swagger" // Import docs
 )
 
 type Server struct {
@@ -31,6 +33,9 @@ func NewServer(cfg config.Config, log *slog.Logger, application *app.Application
 	mux.HandleFunc("POST /api/v1/login", s.handleLogin)
 	mux.Handle("GET /api/v1/me", s.withAuth(http.HandlerFunc(s.handleMe)))
 
+	// Swagger UI
+	mux.HandleFunc("GET /swagger/", httpSwagger.WrapHandler)
+
 	s.http = &http.Server{
 		Addr:         cfg.HTTPAddress,
 		Handler:      s.withLogging(s.withRecover(mux)),
@@ -45,10 +50,24 @@ func (s *Server) Start() error { return s.http.ListenAndServe() }
 
 func (s *Server) Stop(ctx context.Context) error { return s.http.Shutdown(ctx) }
 
+// handleHealth godoc
+// @Summary      Health Check
+// @Description  Check if the server is healthy
+// @Tags         health
+// @Produce      json
+// @Success      200 {object} map[string]interface{}
+// @Router       /healthz [get]
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, http.StatusOK, map[string]any{"status": "ok", "time": time.Now()})
 }
 
+// handleListGreetings godoc
+// @Summary      List Greetings
+// @Description  List all greetings
+// @Tags         greetings
+// @Produce      json
+// @Success      200 {array} domain.Greeting
+// @Router       /api/v1/greetings [get]
 func (s *Server) handleListGreetings(w http.ResponseWriter, r *http.Request) {
 	items, err := s.app.Queries.ListGreetingsHandler.Handle()
 	if err != nil {
@@ -58,6 +77,15 @@ func (s *Server) handleListGreetings(w http.ResponseWriter, r *http.Request) {
 	s.respondJSON(w, http.StatusOK, items)
 }
 
+// handleGetGreeting godoc
+// @Summary      Get Greeting
+// @Description  Get a greeting by ID
+// @Tags         greetings
+// @Produce      json
+// @Param        id path string true "Greeting ID"
+// @Success      200 {object} domain.Greeting
+// @Failure      404 {object} map[string]string
+// @Router       /api/v1/greetings/{id} [get]
 func (s *Server) handleGetGreeting(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	g, err := s.app.Queries.GetGreetingHandler.Handle(id)
@@ -69,10 +97,23 @@ func (s *Server) handleGetGreeting(w http.ResponseWriter, r *http.Request) {
 }
 
 type createGreetingRequest struct {
-	ID      string `json:"id"`
-	Message string `json:"message"`
+	ID      string `json:"id" example:"greeting-123"`
+	Message string `json:"message" example:"Hello, World!"`
 }
 
+// handleCreateGreeting godoc
+// @Summary      Create Greeting
+// @Description  Create a new greeting
+// @Tags         greetings
+// @Accept       json
+// @Produce      json
+// @Param        request body createGreetingRequest true "Greeting Data"
+// @Success      201 {object} domain.Greeting
+// @Failure      400 {object} map[string]string
+// @Failure      401 {object} map[string]string
+// @Failure      409 {object} map[string]string
+// @Security     BearerAuth
+// @Router       /api/v1/greetings [post]
 func (s *Server) handleCreateGreeting(w http.ResponseWriter, r *http.Request) {
 	var req createGreetingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
